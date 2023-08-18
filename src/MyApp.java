@@ -95,25 +95,27 @@ public class MyApp extends JFrame {
                 if (getMessage.replaceAll("[^ABCDEFabcdef0-9?]", "").equals(getMessage)) {
                     getMessage = getMessage.toUpperCase();
                     String[] beforePattern = getMessage.split("\\?");
-                    ArrayList<String> pattern = new ArrayList<>();
+                    if (beforePattern.length != 0) {
+                        ArrayList<String> pattern = new ArrayList<>();
 
-                    for (String symbol: beforePattern
-                    ) {
-                        if (symbol.isEmpty()) {
-                            pattern.add("?");
-                        } else {
-                            if (symbol.length() % 2 == 1) symbol = "0" + symbol;
-                            String[] temp = symbol.split("(?<=\\G..)");
+                        for (String symbol : beforePattern
+                        ) {
+                            if (symbol.isEmpty()) {
+                                pattern.add("?");
+                            } else {
+                                if (symbol.length() % 2 == 1) symbol = "0" + symbol;
+                                String[] temp = symbol.split("(?<=\\G..)");
 
-                            pattern.addAll(Arrays.asList(temp));
-                            pattern.add("?");
+                                pattern.addAll(Arrays.asList(temp));
+                                pattern.add("?");
+                            }
                         }
-                    }
-                    pattern.remove(pattern.size() - 1);
+                        pattern.remove(pattern.size() - 1);
 
 
-                    wwt.KMP(pattern);
-                }
+                        wwt.KMP(pattern);
+                    } else JOptionPane.showMessageDialog(null, "Что-то пошло не так. Вероятно вы использовали только один символ - '?', моё приложение не поддерживает данное действие");
+                } else JOptionPane.showMessageDialog(null, "Ошибка строчки ввода.");
             }
         });
 

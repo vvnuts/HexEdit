@@ -12,13 +12,14 @@ import java.util.ArrayList;
 public class WorkWithTable {
     private WorkWithFile wwf;
     private JTable myTable;
-    private boolean canChanged = false;
     private DefaultTableModel tableModel;
     private final ArrayList<Integer> highlightCells = new ArrayList<>();
     private int indexHighlite = 0;
     private Container myApp;
+    private boolean canChanged = false;
     private boolean isTableEmpty = true;
     private boolean isByteInfoCreate = false;
+    private boolean isWorkSearch = false;
     private final Clipboard cp = Toolkit.getDefaultToolkit().getSystemClipboard();
     private int cols = 8;
     private int sumCells;
@@ -136,7 +137,7 @@ public class WorkWithTable {
         myApp = container;
         wwf = new WorkWithFile(path);
         if (sumCells > 0) {
-            for (int i = sumCells + myTable.getRowCount() - 1, counter = 0; counter < sumCells; counter++, i--) { // Если таблица непустая удаляем занечния из неё
+            for (int i = sumCells + myTable.getRowCount() - 1, counter = 0; counter < sumCells; counter++, i--) { // Таблица непустая - удаляем значения из неё
                 if (i % (cols + 1) == 0) i--;
                 tableModel.setValueAt(null, i / (cols + 1), i % (cols + 1));
             }
@@ -147,6 +148,7 @@ public class WorkWithTable {
         selectLastByte(tableModel, myTable, address);
         isTableEmpty = false;
         sumCells = wwf.getQuaNumberB(); // Записываем кол-во байт
+        checkAndAddRow(sumCells + tableModel.getRowCount() - 1, tableModel.getRowCount());
 
         canChanged = true;
     }
@@ -162,7 +164,7 @@ public class WorkWithTable {
     public void KMP(ArrayList<String> pattern){ // Алгоритм кнутта-морриса пратта
         canChanged = false;
         // базовый случай 1: шаблон нулевой или пустой
-        highlightCells.clear();
+        if (isWorkSearch) removeButton();
         if (pattern == null || pattern.size() == 0)
         {
             JOptionPane.showMessageDialog(null, "Шаблон пустой");
@@ -209,7 +211,12 @@ public class WorkWithTable {
             }
         }
         canChanged = true;
-        scrollSearch();
+        if (highlightCells.size() > 0) {
+            isWorkSearch = true;
+            scrollSearch();
+        } else {
+            JOptionPane.showMessageDialog(null, "К сожалению, в таблице объект вашего поиска отсутствует.");
+        }
     }
     private void scrollSearch() { // Функция для скролла найденных строк
         selectLastByte(tableModel, myTable, highlightCells.get(0));
@@ -245,6 +252,7 @@ public class WorkWithTable {
         myApp.revalidate();
     }
     private void removeButton() {
+        isWorkSearch = false;
         myApp.remove(button);
         myApp.revalidate();
         highlightCells.clear();

@@ -31,9 +31,11 @@ public class WorkWithFile {
                 }
             }
 
-            String[] lastRow = new String[quaNumberB % columnLength + 1];
-            System.arraycopy(row, 0, lastRow, 0, lastRow.length);
-            model.addRow(lastRow);
+            if (quaNumberB % columnLength != 0) {
+                String[] lastRow = new String[quaNumberB % columnLength + 1];
+                System.arraycopy(row, 0, lastRow, 0, lastRow.length);
+                model.addRow(lastRow);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
