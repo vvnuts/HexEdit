@@ -108,31 +108,7 @@ public class WorkWithTable {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    int numSelectedByte = countSelectionCell();
-
-                    if (numSelectedByte == 2 || numSelectedByte == 4 || numSelectedByte == 8) { // Если 2, 4, 8 байт считываем
-                        try {
-                            int[] rowsSelected = myTable.getSelectedRows();
-                            int[] colsSelected = myTable.getSelectedColumns();
-
-                            StringBuilder bytes = new StringBuilder();
-
-                            for (int j : rowsSelected) {
-                                for (int k : colsSelected) {
-                                    bytes.append(tableModel.getValueAt(j, k).toString());
-                                }
-                            }
-
-                            long bigIntInfo = parseUnsignedHex(bytes.toString());
-                            double bigDecInfo = Double.longBitsToDouble(bigIntInfo);;
-
-                            byteInfo.setText("<html>   int: " + bigIntInfo + "<br>  double: " + bigDecInfo + "</html>");
-                        } catch (NullPointerException er) {
-                            getByteInfo(model, table);
-                        }
-                    } else { // Если один байт считываем
-                        getByteInfo(model, table);
-                    }
+                    getByteInfo(model, table);
                 }
             }
         });
@@ -165,7 +141,8 @@ public class WorkWithTable {
                 tableModel.setValueAt(null, i / (cols + 1), i % (cols + 1));
             }
         }
-        tableModel.removeRow(0); // В любом случае убираем первый столбец, т.к. он мешает алгоритму
+        deleteNullRow(tableModel); // Удаляет все стрки, кроме первой
+        tableModel.removeRow(0); // В любом случае убираем первую строку, т.к. он мешает алгоритму
         wwf.readFile(tableModel, cols); // считываем
         selectLastByte(tableModel, myTable, address);
         isTableEmpty = false;
@@ -271,21 +248,6 @@ public class WorkWithTable {
         myApp.remove(button);
         myApp.revalidate();
         highlightCells.clear();
-    }
-
-    private int countSelectionCell() {
-        int counter = 0;
-
-        int[] indexesSelectedRows = myTable.getSelectedRows();
-        int[] indexesSelectedColumns = myTable.getSelectedColumns();
-
-        for (int i = 0; i < indexesSelectedRows.length; i++) {
-            for (int indexesSelectedColumn : indexesSelectedColumns) {
-                if (indexesSelectedColumn != 0) counter++;
-            }
-        }
-
-        return counter;
     }
     private void setAddress(){
         address = myTable.getSelectedRow() * cols + myTable.getSelectedColumn();
@@ -490,11 +452,6 @@ public class WorkWithTable {
         JMenuItem cut = new JMenuItem("Cut");
         cut.addActionListener(new AbstractAction() { // Работает также, как удаление со смещением, только сохраняет удалённое в буфер обмена
             @Override
-            public void putValue(String key, Object newValue) {
-                super.putValue(NAME, "cut");
-            }
-
-            @Override
             public void actionPerformed(ActionEvent e) {
                 canChanged = false;
 
@@ -525,10 +482,47 @@ public class WorkWithTable {
                 canChanged = true;
             }
         });
+        JMenuItem geInfo = new JMenuItem("Get bytes info");
+        geInfo.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String[] values = {"2", "4", "8"};
+
+                Object selected = JOptionPane.showInputDialog(null, "What is the target Nicotine level?", "Selection", JOptionPane.PLAIN_MESSAGE, null, values, "0");
+                if ( selected != null ) {//null if the user cancels.
+                    String selectedString = selected.toString();
+
+                    int startIndex = myTable.getSelectedRow() * (cols + 1) + myTable.getSelectedColumn();
+                    StringBuilder bytes = new StringBuilder();
+
+                    for (int i = startIndex, counter = 0; counter < Integer.parseInt(selectedString); counter++, i++) {
+                        if (i % (cols + 1) == 0) i++;
+                        if (tableModel.getValueAt(i / (cols + 1), i % (cols + 1)) != null) {
+                            String tableValue = tableModel.getValueAt(i / (cols + 1), i % (cols + 1)).toString();
+                            bytes.append(tableValue);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Не получается считать все байты");
+                            return;
+                        }
+                    }
+
+                    long bigIntInfo = parseUnsignedHex(bytes.toString());
+                    double bigDecInfo = Double.longBitsToDouble(bigIntInfo);
+
+
+                    byteInfo.setText("<html>Info about some bytes:" + "<br>   int:" + bigIntInfo + "<br>  double: " + bigDecInfo + "</html>");
+
+                } else {
+                    System.out.println("User cancelled");
+                }
+            }
+        });
 
         popup.add(delete);
         popup.add(add);
         popup.add(cut);
+        popup.add(geInfo);
+        // Добавить сепаратор
 
         return popup;
     }

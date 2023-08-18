@@ -55,3 +55,4 @@ public class WorkWithFile {
         return javax.xml.bind.DatatypeConverter.parseHexBinary(hex);
     }
 }
+
